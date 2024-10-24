@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4311370927072634bbb8bae7ccb261ef, type: 3}
+  m_Name: Margarita
+  m_EditorClassIdentifier: 
+  ingredients:
+  - {fileID: 11400000, guid: 861ad12ff21065d48b4058688c74d27a, type: 2}
+  - {fileID: 11400000, guid: 8fc95096b47a0e6488b20b74531a84a0, type: 2}
+  - {fileID: 11400000, guid: f6a139445dcb97545a2a57f6fe45f41e, type: 2}
+  drink: {fileID: 4875095586910185287, guid: aa7f1a996e1fec14487ef65b95b0d275, type: 3}

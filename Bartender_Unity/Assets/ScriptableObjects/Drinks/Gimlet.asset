@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4311370927072634bbb8bae7ccb261ef, type: 3}
+  m_Name: Gimlet
+  m_EditorClassIdentifier: 
+  ingredients:
+  - {fileID: 11400000, guid: f6a139445dcb97545a2a57f6fe45f41e, type: 2}
+  - {fileID: 11400000, guid: 693fb9d3daad3544db9b6a04b33d643f, type: 2}
+  drink: {fileID: 4875095586910185287, guid: 163313d926141eb4ca9c830c9ed724c5, type: 3}
