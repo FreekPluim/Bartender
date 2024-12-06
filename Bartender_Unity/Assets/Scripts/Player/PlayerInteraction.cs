@@ -19,7 +19,7 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(Settings.instance.Interact))
+        if (Input.GetKeyDown(Settings.instance.Interact) && !GameStateManager.Instance.paused)
         {
             RaycastHit hit;
             if (Physics.Raycast(Cam.transform.position, Cam.transform.forward, out hit, 5f, IgnoreLayer))
@@ -34,17 +34,28 @@ public class PlayerInteraction : MonoBehaviour
                     //Clear hand if something is in it;
                     if (IngredientInHand != null || DrinkInHand != null)
                     {
-                        Transform itemInHand = Hand.GetChild(0);
-                        itemInHand.parent = null;
+                        Transform itemInHand = RemoveItemFromHand();
                         itemInHand.transform.position = hit.point;
                         itemInHand.transform.rotation = Quaternion.Euler(0, 0, 0);
                         itemInHand.GetComponent<Collider>().enabled = true;
-
-                        IngredientInHand = null;
-                        DrinkInHand = null;
                     }
                 }
             }
         }
+    }
+
+    public Transform RemoveItemFromHand(bool destroyItem = false)
+    {
+        Transform itemInHand = Hand.GetChild(0);
+        itemInHand.parent = null;
+
+        if (destroyItem)
+        {
+            Destroy(itemInHand.gameObject);
+        }
+
+        IngredientInHand = null;
+        DrinkInHand = null;
+        return itemInHand;
     }
 }

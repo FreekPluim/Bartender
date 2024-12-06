@@ -112,7 +112,6 @@ GameObject:
   - component: {fileID: 6916269647557272922}
   - component: {fileID: 8975191218977562123}
   - component: {fileID: 7894900407293015946}
-  - component: {fileID: 7426183756570639531}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -185,27 +184,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7426183756570639531
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4075676772829012255}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5231857742958649247
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +194,8 @@ GameObject:
   m_Component:
   - component: {fileID: 875125598928293818}
   - component: {fileID: 5158528914555229381}
+  - component: {fileID: 182962165158710068}
+  - component: {fileID: 4444574798984696407}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -252,7 +232,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 218ea3585caa9eb4fbf49131df768cd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allDrinks: []
+  allDrinks:
+  - {fileID: 11400000, guid: 8a004a6ecb7f28c4dac54e8888671eee, type: 2}
+  - {fileID: 11400000, guid: f18295213424fbf4d97dedfd48e3c7ac, type: 2}
+  - {fileID: 11400000, guid: ce5d5d0efbf27a349bb4e207cb596f6c, type: 2}
+  - {fileID: 11400000, guid: 3f1338c2ad722f941b01acb5ed89221a, type: 2}
+  - {fileID: 11400000, guid: 2de1fd0dd4e858542bfda217b31b4784, type: 2}
+  navAgent: {fileID: 4444574798984696407}
+  gaveOrder: 0
+  hasID: 1
+--- !u!136 &182962165158710068
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5231857742958649247}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
+--- !u!195 &4444574798984696407
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5231857742958649247}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 2
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &7720979569482749278
 GameObject:
   m_ObjectHideFlags: 0

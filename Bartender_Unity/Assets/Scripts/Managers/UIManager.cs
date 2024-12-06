@@ -18,6 +18,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform OrderHolder;
     [SerializeField] GameObject OrderPrefab;
 
+    //Recipe book
+    [SerializeField] GameObject RecipeBook;
+
     /// Events
     [HideInInspector] public UnityEvent onInteractedWithCustomer;
     [HideInInspector] public UnityEvent<UIManager> onAskedForID;
@@ -45,7 +48,15 @@ public class UIManager : MonoBehaviour
         ButtonAskForOrder.onClick.AddListener(AskForOrder);
         ButtonReturnID.onClick.AddListener(ReturnID);
         ButtonNevermind.onClick.AddListener(OnNevermindPressed);
+    }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            RecipeBook.SetActive(!RecipeBook.activeSelf);
+            GameStateManager.Instance.Pause();
+        }
     }
 
     public void AskForID()
@@ -83,7 +94,7 @@ public class UIManager : MonoBehaviour
             ButtonAskForID.gameObject.SetActive(true);
             ButtonReturnID.gameObject.SetActive(false);
         }
-        else 
+        else
         {
             ButtonAskForID.gameObject.SetActive(false);
             ButtonReturnID.gameObject.SetActive(true);
