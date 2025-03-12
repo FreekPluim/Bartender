@@ -7,6 +7,6 @@ public class DrinksGuide : MonoBehaviour, IInteractable
     public void OnInteracted(PlayerInteraction playerInteraction)
     {
         GuideUI.SetActive(true);
-        GameStateManager.Instance.Pause();
+        GameStateManager.Instance.PauseUnpause();
     }
 }

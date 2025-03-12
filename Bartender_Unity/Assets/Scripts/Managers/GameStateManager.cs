@@ -15,6 +15,7 @@ public class GameStateManager : MonoBehaviour
     //Managers
     [SerializeField] CustomerManager customerManager;
     [SerializeField] UIManager uiManager;
+    [SerializeField] DialogueManager dialogueManager;
 
     private void Awake()
     {
@@ -25,7 +26,7 @@ public class GameStateManager : MonoBehaviour
         else Destroy(this);
     }
 
-    public void Pause()
+    public void PauseUnpause()
     {
         paused = !paused;
 
@@ -33,7 +34,20 @@ public class GameStateManager : MonoBehaviour
         else Cursor.lockState = CursorLockMode.Locked;
 
         Cursor.visible = !Cursor.visible;
+    }
 
+    public void Pause()
+    {
+        paused = true;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void UnPause()
+    {
+        paused = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void NextDay()
@@ -61,5 +75,15 @@ public class GameStateManager : MonoBehaviour
         }
 
         return uiManager;
+    }
+    public DialogueManager GetDialogueManager()
+    {
+        if (dialogueManager == null)
+        {
+            Debug.LogError("No Customer Manger Refferenced in - GameStateManager -");
+            return null;
+        }
+
+        return dialogueManager;
     }
 }

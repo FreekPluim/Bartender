@@ -3,19 +3,19 @@ using UnityEngine;
 
 public class CustomerManager : MonoBehaviour
 {
-    [SerializeField] Transform SpawnPoint;
+    public Transform SpawnPoint;
 
     public GameObject CustomerPrefab;
 
     [SerializeField] List<GameObject> seats;
     Dictionary<GameObject, bool> takenSeats = new Dictionary<GameObject, bool>();
 
-    private void Start()
+    private void Awake()
     {
-        for (int i = 0; i < seats.Count; i++)
-        {
-            takenSeats.Add(seats[i], false);
-        }
+        //for (int i = 0; i < seats.Count; i++)
+        //{
+        //takenSeats.Add(seats[i], false);
+        //}
 
         //TODO: Handle new day starting stuff.
 
@@ -58,7 +58,7 @@ public class CustomerManager : MonoBehaviour
         }
         return false;
     }
-    Vector3 getFirstOpenSeat()
+    public Vector3 getFirstOpenSeat()
     {
         foreach (GameObject seat in seats)
         {

@@ -1,56 +1,89 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
+    public static DialogueManager Instance;
+
     [SerializeField] GameObject dialogueBox;
     [SerializeField] TextMeshProUGUI dialogueText;
     [SerializeField] float textSpeed = 0.05f;
 
-    string currentDialogue = "";
+    DialogueManager dialogueManager;
+    DialogueData currentDialogue;
     Coroutine playDialogueEnumerator;
 
-    System.Collections.Generic.Queue<string> dialogueQueue = new System.Collections.Generic.Queue<string>();
+    Queue<DialogueData> dialogueQueue = new Queue<DialogueData>();
 
+    [SerializeField] List<Button> buttons;
+    [SerializeField] List<TextMeshProUGUI> buttonTexts;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else Destroy(this);
+    }
 
     private void Update()
     {
-        if (playDialogueEnumerator != null && Input.GetKeyDown(KeyCode.Space))
+        if (playDialogueEnumerator != null && Input.GetMouseButtonDown(0))
         {
             StopCoroutine(playDialogueEnumerator);
+            CheckForButtons();
             playDialogueEnumerator = null;
-            dialogueText.text = currentDialogue;
+            dialogueText.text = currentDialogue.dialogue;
         }
-        else if (dialogueBox.activeSelf && Input.GetKeyDown(KeyCode.Space))
+        else if (dialogueBox.activeSelf && !buttons[0].gameObject.activeSelf && Input.GetMouseButtonDown(0))
         {
-            dialogueQueue.Dequeue();
-            currentDialogue = "";
-
-            if (dialogueQueue.Count > 0)
-            {
-                //Play next
-                PlayDialogue();
-            }
-            else
-            {
-                dialogueBox.SetActive(false);
-            }
+            currentDialogue.OnDialogueEnd?.Invoke();
+            Dequeue();
         }
 
         if (Input.GetKeyDown(KeyCode.N))
         {
-            AddToDialogueQueue("This is a test, do not worry, im just stupid, Lets also check how multiple lines work as this might be an issue");
+            AddToDialogueQueue(new DialogueData("Hello, how are you"));
         }
     }
 
-    public void AddToDialogueQueue(string text)
+    public void Dequeue()
     {
-        dialogueQueue.Enqueue(text);
+        if (dialogueQueue.Count > 0) dialogueQueue.Dequeue();
+        currentDialogue = null;
 
-        if (playDialogueEnumerator == null && currentDialogue == "") PlayDialogue();
+        if (buttons[0].gameObject.activeSelf)
+        {
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                buttons[i].gameObject.SetActive(false);
+                buttons[i].onClick.RemoveAllListeners();
+            }
+        }
+
+        if (dialogueQueue.Count > 0)
+        {
+            //Play next
+            PlayDialogue();
+        }
+        else
+        {
+            dialogueBox.SetActive(false);
+            GameStateManager.Instance.UnPause();
+        }
     }
 
+    public void AddToDialogueQueue(DialogueData dialogue)
+    {
+        dialogueQueue.Enqueue(dialogue);
+
+        if (playDialogueEnumerator == null && currentDialogue == null) PlayDialogue();
+    }
     void PlayDialogue()
     {
         dialogueText.text = "";
@@ -58,15 +91,32 @@ public class DialogueManager : MonoBehaviour
         currentDialogue = dialogueQueue.Peek();
         playDialogueEnumerator = StartCoroutine(playDialogueI(dialogueQueue.Peek()));
     }
-
-    IEnumerator playDialogueI(string text)
+    IEnumerator playDialogueI(DialogueData dialogueData)
     {
-        foreach (char dialogue in text)
+        GameStateManager.Instance.Pause();
+        currentDialogue = dialogueData;
+        foreach (char dialogue in dialogueData.dialogue)
         {
             dialogueText.text += dialogue;
             yield return new WaitForSeconds(textSpeed);
         }
+
+        CheckForButtons();
+
         StopCoroutine(playDialogueEnumerator);
         playDialogueEnumerator = null;
+    }
+    void CheckForButtons()
+    {
+        if (currentDialogue.buttons != null && currentDialogue.buttons.Count > 0)
+        {
+            for (int i = 0; i < currentDialogue.buttons.Count; i++)
+            {
+                buttons[i].gameObject.SetActive(true);
+                buttons[i].onClick.AddListener(currentDialogue.buttons.ElementAt(i).Value);
+                buttonTexts[i].text = currentDialogue.buttons.ElementAt(i).Key;
+
+            }
+        }
     }
 }

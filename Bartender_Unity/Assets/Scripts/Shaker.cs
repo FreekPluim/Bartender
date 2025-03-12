@@ -1,38 +1,80 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class Shaker : MonoBehaviour, IInteractable
 {
-    [SerializeField] int IngredientMax;
+    Camera Cam;
     [SerializeField] List<DrinkSo> Drinks;
 
-    List<IngredientSo> CurrentIngredients = new List<IngredientSo>();
+    Dictionary<IngredientSo, int> CurrentIngredients = new Dictionary<IngredientSo, int>();
+
+    bool ingredientsChanged = false;
 
     [SerializeField] GameObject incorrectDrink;
     [SerializeField] Transform drinkPlacementSpot;
 
+    bool pickedUp = false;
+    [SerializeField] GameObject IngredientPrefab;
+    [SerializeField] Transform IngredientList;
+    [SerializeField] GameObject CurrentIngredientsUI;
+
+    //When picked up
+    [SerializeField] GameObject shakerUI;
+    [SerializeField] Slider mixedTracker;
+
+    PlayerInteraction playerInteractor;
+
+    private void Awake()
+    {
+        Cam = Camera.main;
+    }
+
     public void OnInteracted(PlayerInteraction playerInteraction)
     {
+        playerInteractor = playerInteraction;
         //Check if anything in hand
         if (playerInteraction.IngredientInHand != null)
         {
-            //check if ingredient max is reached
-            if (CurrentIngredients.Count >= IngredientMax)
+            //Open Dialogue for how much to add
+            if (playerInteraction.IngredientInHand.Type == IngredientType.Liquid)
             {
-                //Play animation that cant add item
-                Debug.Log("Shaker is already full");
-                return;
+                DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                    "How many shots do you want to add?", null, new Dictionary<string, UnityAction>()
+                    {
+                        { "1 shot", AddOneShot },
+                        { "2 shots", AddTwoShots },
+                        { "Nevermind", OnNevermind }
+                    }
+                    ));
+            }
+            if (playerInteraction.IngredientInHand.Type == IngredientType.Physical)
+            {
+                DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                    "How much do you want to add?", null, new Dictionary<string, UnityAction>()
+                    {
+                        { "1", AddOneShot },
+                        { "2", AddTwoShots },
+                        { "Nevermind", OnNevermind }
+                    }
+                    ));
             }
 
-            //Add to shaker
-            CurrentIngredients.Add(playerInteraction.IngredientInHand);
+            GameStateManager.Instance.Pause();
         }
         else
         {
             if (CurrentIngredients.Count > 0)
             {
-                //shake and create drink
-                DrinkSo foundDrink = CompareLists();
+                //Pickup shaker and open HUD for shaker
+                pickedUp = true;
+                CurrentIngredientsUI.SetActive(false);
+
+
+
+                #region Old code
+                /*DrinkSo foundDrink = CompareLists();
 
                 if (foundDrink != null)
                 {
@@ -46,14 +88,68 @@ public class Shaker : MonoBehaviour, IInteractable
                     //Create incorrect drink 
                     Instantiate(incorrectDrink, drinkPlacementSpot.position, Quaternion.identity);
                     CurrentIngredients.Clear();
-                }
+                }*/
+                #endregion
             }
         }
     }
 
+    private void Update()
+    {
+        if (pickedUp)
+        {
+            if (!shakerUI.activeSelf) shakerUI.SetActive(true);
+            if (!CurrentIngredientsUI.activeSelf) CurrentIngredientsUI.SetActive(false);
+
+
+        }
+        else
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(Cam.transform.position, Cam.transform.forward, out hit, 5f))
+            {
+                if (hit.transform.gameObject == gameObject)
+                {
+                    if (!CurrentIngredientsUI.activeSelf) ShowIngredients();
+                }
+                else
+                {
+                    CurrentIngredientsUI.SetActive(false);
+                }
+            }
+            else
+            {
+                CurrentIngredientsUI.SetActive(false);
+            }
+        }
+    }
+    void ShowIngredients()
+    {
+        if (ingredientsChanged)
+        {
+            //Clear Previous
+            for (int i = IngredientList.childCount; i > 0; i--)
+            {
+                Destroy(IngredientList.GetChild(i - 1).gameObject);
+            }
+
+            //CreateNew
+            if (CurrentIngredients.Count > 0)
+            {
+                foreach (var ingredient in CurrentIngredients)
+                {
+                    GameObject obj = Instantiate(IngredientPrefab, IngredientList);
+                    obj.GetComponent<IngredientUI>().SetValues(ingredient.Key.Name, ingredient.Value);
+                }
+            }
+        }
+
+        ingredientsChanged = false;
+        CurrentIngredientsUI.SetActive(true);
+    }
     private DrinkSo CompareLists()
     {
-        List<IngredientSo> InShaker = new List<IngredientSo>(CurrentIngredients);
+        List<IngredientSo> InShaker = new List<IngredientSo>(CurrentIngredients.Keys);
         DrinkSo returnDrink = null;
 
         //Compare in shaker with in drinks
@@ -86,5 +182,39 @@ public class Shaker : MonoBehaviour, IInteractable
         }
 
         return returnDrink;
+    }
+    void AddOneShot()
+    {
+        AddIngredients(playerInteractor.IngredientInHand, 1);
+        ingredientsChanged = true;
+        DialogueManager.Instance.Dequeue();
+        GameStateManager.Instance.UnPause();
+    }
+    void AddTwoShots()
+    {
+        AddIngredients(playerInteractor.IngredientInHand, 2);
+        ingredientsChanged = true;
+        DialogueManager.Instance.Dequeue();
+        GameStateManager.Instance.UnPause();
+    }
+    void AddIngredients(IngredientSo ingredient, int amount)
+    {
+        if (CurrentIngredients.ContainsKey(ingredient))
+        {
+            CurrentIngredients[ingredient] += amount;
+            print("adding to existing");
+        }
+        else
+        {
+            CurrentIngredients.Add(ingredient, amount);
+            print("adding new");
+        }
+        ShowIngredients();
+    }
+    void OnNevermind()
+    {
+        //Open UI for how much to add
+        DialogueManager.Instance.Dequeue();
+        GameStateManager.Instance.UnPause();
     }
 }

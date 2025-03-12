@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 
 public class Customer : MonoBehaviour, IInteractable
 {
     [SerializeField] List<DrinkSo> allDrinks;
+
+    [SerializeField]
+    List<string> possibleOpeningSentences = new List<string>();
 
     string Name = "Dopinder";
     //Age
@@ -15,81 +19,167 @@ public class Customer : MonoBehaviour, IInteractable
 
     public NavMeshAgent navAgent;
 
-
-
     public bool gaveOrder = false;
     public bool hasID = true;
+    public bool shownID = false;
 
     bool reached = false;
+    bool canInteract = false;
 
-    public void OnInteracted(PlayerInteraction playerInteraction)
+    /// <summary>
+    /// Initial Interact
+    /// </summary>
+    public virtual void OnInteracted(PlayerInteraction playerInteraction)
     {
-        //Open dialog box
-        if (playerInteraction.DrinkInHand == null)
+        if (!canInteract)
         {
-            if (UIManager.instance != null)
+            return;
+        }
+        if (playerInteraction.DrinkInHand == order)
+        {
+            playerInteraction.RemoveItemFromHand(true);
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+            "Thank you", CustomerLeaves));
+        }
+        //Open dialog box
+        if (hasID && shownID)
+        {
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+            "Yes?", null,
+            new Dictionary<string, UnityAction>()
             {
-                UIManager.instance.onInteractedWithCustomer.Invoke();
-                UIManager.instance.onAskedForID.AddListener(GiveID);
-                UIManager.instance.onReturnID.AddListener(ReturnID);
-                UIManager.instance.onAskedForOrder.AddListener(GiveOrder);
-                UIManager.instance.onNevermind.AddListener(OnNevermind);
-                UIManager.instance.InteractedWithCustomer(this);
-            }
-            else Debug.LogError("**NO UIMANAGER FOUND**");
+                {"Ask for ID", GiveorReturnID },
+                {"Ask for Order", GiveOrder },
+                {"Something wrong with ID", SomethingWrongWithID },
+                {"Nevermind", OnNevermind }
+            }));
+        }
+        else if (hasID)
+        {
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                possibleOpeningSentences[Random.Range(0, possibleOpeningSentences.Count)], null,
+                new Dictionary<string, UnityAction>()
+                {
+                    {"Ask for ID", GiveorReturnID },
+                    {"Ask for Order", GiveOrder },
+                    {"Nevermind", OnNevermind }
+                }));
         }
         else
         {
-            //hand customer drink
-            if (playerInteraction.DrinkInHand == order)
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+            "Yes?", null,
+            new Dictionary<string, UnityAction>()
             {
-                playerInteraction.RemoveItemFromHand(true);
-                GameStateManager.Instance.GetCustomerManager().OnCustomerLeft(gameObject);
-
-                Debug.Log("Correct Drink: Leaving");
-            }
+                {"Return ID", GiveorReturnID },
+                {"Ask for Order", GiveOrder },
+                {"Something wrong with ID", SomethingWrongWithID },
+                {"Nevermind", OnNevermind }
+            }));
         }
     }
-    void GiveID(UIManager uiManager)
+
+    protected virtual void GiveorReturnID()
     {
-        uiManager.SetID(Name, Age);
-        hasID = false;
+        GameStateManager.Instance.GetUIManager().SetID(Name, Age);
+        hasID = !hasID;
+        shownID = true;
+        DialogueManager.Instance.Dequeue();
     }
-    void ReturnID(UIManager uiManager)
+    protected virtual void GiveOrder()
     {
-        hasID = true;
+        DialogueManager.Instance.AddToDialogueQueue(new DialogueData("I would like a " + order.name));
+
+        if (!gaveOrder)
+        {
+            GameStateManager.Instance.GetUIManager().AddOrder(order, gameObject);
+            gaveOrder = true;
+        }
+
+        DialogueManager.Instance.Dequeue();
     }
-    void GiveOrder(UIManager uiManager)
+    protected virtual void OnNevermind()
     {
-        uiManager.AddOrder(order);
+        DialogueManager.Instance.Dequeue();
     }
-    void OnNevermind(UIManager uiManager)
+    protected virtual void SomethingWrongWithID()
     {
-        uiManager.onAskedForID.RemoveListener(GiveID);
-        uiManager.onAskedForOrder.RemoveListener(GiveOrder);
-        uiManager.onNevermind.RemoveListener(OnNevermind);
+        DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                "What is wrong with my ID?",
+                null,
+                new Dictionary<string, UnityAction>()
+                {
+                    {"Not Old Enough", NotOldEnough },
+                    {"Image doesn't match", ImageDoesntMatch },
+                    {"It's fake", FakeID },
+                    {"Nevermind", OnNevermind }
+                }));
+
+        DialogueManager.Instance.Dequeue();
     }
 
-    private void Start()
+    /// <summary>
+    /// Something wrong with ID
+    /// </summary>
+    protected void NotOldEnough()
+    {
+        if (!gaveOrder)
+        {
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                "But you don't know what i was going to order yet?"));
+        }
+        else
+        {
+            DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                "Fine, i'll leave..", CustomerLeaves));
+        }
+
+        DialogueManager.Instance.Dequeue();
+    }
+    protected void ImageDoesntMatch()
+    {
+        DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                "Fine, i'll leave..", CustomerLeaves));
+        DialogueManager.Instance.Dequeue();
+    }
+    protected void FakeID()
+    {
+        DialogueManager.Instance.AddToDialogueQueue(new DialogueData(
+                "Fine, i'll leave", CustomerLeaves));
+
+        DialogueManager.Instance.Dequeue();
+    }
+
+    /// <summary>
+    /// Leaving Customer
+    /// </summary>
+    protected void CustomerLeaves()
+    {
+        canInteract = false;
+        UIManager.instance.RemoveOrder(gameObject);
+        GameStateManager.Instance.GetCustomerManager().OnCustomerLeft(gameObject);
+        navAgent.SetDestination(GameStateManager.Instance.GetCustomerManager().SpawnPoint.position);
+        if (!hasID) GiveorReturnID();
+    }
+
+    protected virtual void Start()
     {
         order = allDrinks[Random.Range(0, allDrinks.Count)];
-        Age = Random.Range(15, 80);
+        Age = Random.Range(12, 80);
     }
-
-    void Update()
+    protected virtual void Update()
     {
         if (!reached && CheckIfDestinationReached())
         {
             OnDestinationReached();
         }
     }
-
-    void OnDestinationReached()
+    protected void OnDestinationReached()
     {
         transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(Vector3.zero), 1);
+        canInteract = true;
     }
-
-    bool CheckIfDestinationReached()
+    protected bool CheckIfDestinationReached()
     {
         // Check if we've reached the destination
         if (!navAgent.pathPending)

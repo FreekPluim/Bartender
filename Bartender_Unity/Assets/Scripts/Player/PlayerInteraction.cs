@@ -24,7 +24,6 @@ public class PlayerInteraction : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(Cam.transform.position, Cam.transform.forward, out hit, 5f, IgnoreLayer))
             {
-                Debug.Log("Hit");
                 if (hit.transform.TryGetComponent(out IInteractable interactable))
                 {
                     interactable.OnInteracted(this);
